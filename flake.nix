@@ -30,6 +30,7 @@
         pname = "highs";
         src = pkgs.lib.cleanSource ./.;
         format = "pyproject";
+
         nativeBuildInputs = with pkgs.python3Packages; [
           numpy
           pathspec
@@ -39,6 +40,9 @@
 
           pkgs.cmake
           pkgs.ninja
+        ];
+
+        buildInputs = [
           pkgs.zlib
         ];
       };
@@ -60,7 +64,8 @@
       defaultPackage = highs;
       devShell = pkgs.mkShell {
         buildInputs = [
-          ( pkgs.python3.withPackages (ps: [ highspy ]) )
+          highspy
+          ( pkgs.python3.withPackages (ps: [ pkgs.python3Packages.toPythonModule highs ]) )
         ];
       };
     }
