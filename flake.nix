@@ -32,7 +32,7 @@
         format = "pyproject";
         dontUseCmakeConfigure = true;
         nativeBuildInputs = with pkgs.python3Packages; [
-          pkgs.python3Packages.numpy
+          numpy
           pathspec
           pybind11
           pyproject-metadata
