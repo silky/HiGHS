@@ -25,47 +25,75 @@
         # That's it!
         in concatStrings (intersperse "." (lists.flatten vs));
 
-      highspy = pkgs.python3Packages.buildPythonPackage {
-        inherit version;
-        pname = "highs";
-        src = pkgs.lib.cleanSource ./.;
-        format = "pyproject";
+      # highspy = pkgs.python3Packages.buildPythonPackage {
+      #   inherit version;
+      #   pname = "highs";
+      #   src = pkgs.lib.cleanSource ./.;
+      #   format = "pyproject";
 
-        nativeBuildInputs = with pkgs.python3Packages; [
-          numpy
-          pathspec
-          pybind11
-          pyproject-metadata
-          scikit-build-core
+      #   nativeBuildInputs = with pkgs.python3Packages; [
+      #     numpy
+      #     pathspec
+      #     pybind11
+      #     pyproject-metadata
+      #     scikit-build-core
 
-          pkgs.cmake
-          pkgs.ninja
-        ];
+      #     pkgs.cmake
+      #     pkgs.ninja
+      #   ];
 
-        buildInputs = [
-          pkgs.zlib
-        ];
-      };
+      #   buildInputs = [
+      #     pkgs.zlib
+      #   ];
+      # };
 
-      highs = (with pkgs; stdenv.mkDerivation {
-          pname = "highs";
+      highspy = (with pkgs; stdenv.mkDerivation {
+          pname = "highspy";
+
           inherit version;
-          src = pkgs.lib.cleanSource ./.;
-          nativeBuildInputs = [
-            clang
-            cmake
+
+          cmakeFlags = [
+            "-DFAST_BUILD=ON"
+            "-DPYTHON_BUILD_SETUP=ON"
           ];
+
+          src = pkgs.lib.cleanSource ./.;
+
+          buildInputs = with pkgs; [
+            cmake
+            clang
+            (python3.withPackages (ps: with ps; [
+              ps.pybind11
+            ]))
+            zlib
+            ninja
+          ];
+
+          # mesonFlags = [
+          #   "-Dwith_pybind11=true"
+          # ];
+          # nativeBuildInputs = [
+          #   meson
+          # ];
+
+          postInstall = ''
+            mkdir -p $out/${python3.sitePackages}
+            ln -s $out/highspy $out/${python3.sitePackages}/highspy
+          '';
         }
-      );
+        );
+      highspyModule = pkgs.python3Packages.toPythonModule highspy;
     in rec {
-      defaultApp = flake-utils.lib.mkApp {
-        drv = highs;
-      };
-      defaultPackage = highs;
+      # defaultApp = flake-utils.lib.mkApp {
+      #   drv = highs;
+      # };
+      defaultPackage = highspyModule;
       devShell = pkgs.mkShell {
         buildInputs = [
-          highspy
-          ( pkgs.python3.withPackages (ps: [ pkgs.python3Packages.toPythonModule highs ]) )
+          (pkgs.python3.withPackages (ps: [ highspyModule ]))
+          # ( pkgs.python3.withPackages (ps: [
+          #   highspy
+          # ]) )
         ];
       };
     }
