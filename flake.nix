@@ -30,19 +30,18 @@
         pname = "highspy";
         src = pkgs.lib.cleanSource ./.;
         format = "pyproject";
-        propagatedBulidInputs = [
-          pkgs.python3Packages.numpy
-        ];
+        dontUseCmakeConfigure = true;
         nativeBuildInputs = with pkgs.python3Packages; [
+          pkgs.python3Packages.numpy
           pathspec
           pybind11
           pyproject-metadata
           scikit-build-core
           pkgs.cmake
+          pkgs.ninja
         ];
         buildInputs = [
           pkgs.zlib
-          pkgs.ninja
         ];
       };
 
