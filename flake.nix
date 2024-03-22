@@ -25,29 +25,26 @@
         # That's it!
         in concatStrings (intersperse "." (lists.flatten vs));
 
-      # highspy = pkgs.python3Packages.buildPythonPackage {
+      # highspyViaPythonPackage = pkgs.python3Packages.buildPythonPackage {
       #   inherit version;
-      #   pname = "highs";
+      #   pname = "highspy";
       #   src = pkgs.lib.cleanSource ./.;
       #   format = "pyproject";
-
       #   nativeBuildInputs = with pkgs.python3Packages; [
       #     numpy
       #     pathspec
       #     pybind11
       #     pyproject-metadata
       #     scikit-build-core
-
       #     pkgs.cmake
       #     pkgs.ninja
       #   ];
-
       #   buildInputs = [
       #     pkgs.zlib
       #   ];
       # };
 
-      highspy = (with pkgs; stdenv.mkDerivation {
+      highspyViaCmake = with pkgs; stdenv.mkDerivation {
           pname = "highspy";
 
           inherit version;
@@ -80,9 +77,32 @@
             mkdir -p $out/${python3.sitePackages}
             ln -s $out/highspy $out/${python3.sitePackages}/highspy
           '';
-        }
-        );
-      highspyModule = pkgs.python3Packages.toPythonModule highspy;
+        };
+
+      highspyViaMeson = with pkgs; stdenv.mkDerivation {
+          pname = "highspy";
+
+          inherit version;
+
+          src = pkgs.lib.cleanSource ./.;
+
+          buildInputs = with pkgs; [
+            (python3.withPackages (ps: with ps; [
+              ps.pybind11
+            ]))
+            zlib
+            meson
+            ninja
+          ];
+
+          mesonFlags = [
+            "-Dwith_pybind11=true"
+            "-Dfast_build=true"
+          ];
+        };
+
+      highspyModule = pkgs.python3Packages.toPythonModule highspyViaMeson;
+      # highspyModule = pkgs.python3Packages.toPythonModule highspyViaCmake;
     in rec {
       # defaultApp = flake-utils.lib.mkApp {
       #   drv = highs;
@@ -91,9 +111,6 @@
       devShell = pkgs.mkShell {
         buildInputs = [
           (pkgs.python3.withPackages (ps: [ highspyModule ]))
-          # ( pkgs.python3.withPackages (ps: [
-          #   highspy
-          # ]) )
         ];
       };
     }
