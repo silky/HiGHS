@@ -25,24 +25,26 @@
         # That's it!
         in concatStrings (intersperse "." (lists.flatten vs));
 
-      # highspyViaPythonPackage = pkgs.python3Packages.buildPythonPackage {
-      #   inherit version;
-      #   pname = "highspy";
-      #   src = pkgs.lib.cleanSource ./.;
-      #   format = "pyproject";
-      #   nativeBuildInputs = with pkgs.python3Packages; [
-      #     numpy
-      #     pathspec
-      #     pybind11
-      #     pyproject-metadata
-      #     scikit-build-core
-      #     pkgs.cmake
-      #     pkgs.ninja
-      #   ];
-      #   buildInputs = [
-      #     pkgs.zlib
-      #   ];
-      # };
+      highspyViaPythonPackage = pkgs.python3Packages.buildPythonPackage {
+        inherit version;
+        pname = "highspy";
+        src = pkgs.lib.cleanSource ./.;
+        format = "pyproject";
+        propagatedBulidInputs = [
+          pkgs.python3Packages.numpy
+        ];
+        nativeBuildInputs = with pkgs.python3Packages; [
+          pathspec
+          pybind11
+          pyproject-metadata
+          scikit-build-core
+          pkgs.cmake
+        ];
+        buildInputs = [
+          pkgs.zlib
+          pkgs.ninja
+        ];
+      };
 
       highspyViaCmake = with pkgs; stdenv.mkDerivation {
           pname = "highspy";
@@ -101,7 +103,8 @@
           ];
         };
 
-      highspyModule = pkgs.python3Packages.toPythonModule highspyViaMeson;
+      highspyModule = highspyViaPythonPackage;
+      # highspyModule = pkgs.python3Packages.toPythonModule highspyViaMeson;
       # highspyModule = pkgs.python3Packages.toPythonModule highspyViaCmake;
     in rec {
       # defaultApp = flake-utils.lib.mkApp {
